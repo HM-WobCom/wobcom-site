@@ -1215,10 +1215,6 @@ a {
     overflow: hidden;
   }
 }
-.logo-img {
-  height: 5vh;   /* responsive based on screen */
-  max-height: 50px;
-}
 
 @media (prefers-reduced-motion: reduce) {
   *,

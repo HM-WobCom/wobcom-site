@@ -32,9 +32,9 @@
     <header class="site-header" id="top">
       <div class="container header-inner">
         <a class="logo" href="#top" aria-label="Wobcom home">
-  <img src="assets/logo.png" alt="Wobcom Logo" class="logo-img">
-  <span class="logo-text">Wobcom</span>
-</a>
+          <img src="assets/logo.png" alt="Wobcom Logo" class="logo-img">
+          <span class="logo-text">Wobcom</span>
+        </a>
         <button
           class="nav-toggle"
           type="button"
