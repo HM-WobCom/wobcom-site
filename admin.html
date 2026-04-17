@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>Admin — Demo requests | Wobcom</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --navy: #0c2340;
+        --muted: #5c6678;
+        --border: #e4e9f2;
+        --bg: #f7f9fc;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        font-family: "DM Sans", system-ui, sans-serif;
+        background: var(--bg);
+        color: #1a2332;
+        line-height: 1.5;
+        min-height: 100vh;
+      }
+      .wrap {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 2rem 1.25rem;
+      }
+      h1 {
+        font-size: 1.5rem;
+        margin: 0 0 0.5rem;
+        color: var(--navy);
+      }
+      .sub {
+        color: var(--muted);
+        margin: 0 0 2rem;
+        font-size: 0.95rem;
+      }
+      .panel {
+        background: #fff;
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 1.75rem;
+        max-width: 400px;
+        box-shadow: 0 4px 24px rgba(12, 35, 64, 0.06);
+      }
+      .panel h2 {
+        margin: 0 0 1rem;
+        font-size: 1.1rem;
+      }
+      label {
+        display: block;
+        font-size: 0.8125rem;
+        font-weight: 600;
+        margin-bottom: 0.35rem;
+        color: var(--navy);
+      }
+      input[type="password"] {
+        width: 100%;
+        padding: 0.65rem 0.85rem;
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        font-size: 1rem;
+        font-family: inherit;
+        margin-bottom: 1rem;
+      }
+      input:focus {
+        outline: none;
+        border-color: #5b8ec4;
+        box-shadow: 0 0 0 3px rgba(30, 90, 142, 0.15);
+      }
+      button {
+        font-family: inherit;
+        font-weight: 600;
+        font-size: 0.9375rem;
+        padding: 0.65rem 1.25rem;
+        border-radius: 999px;
+        border: none;
+        cursor: pointer;
+        background: linear-gradient(135deg, var(--navy), #153a5c);
+        color: #fff;
+      }
+      button:hover {
+        opacity: 0.95;
+      }
+      button.secondary {
+        background: #fff;
+        color: var(--navy);
+        border: 1px solid var(--border);
+      }
+      .toolbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        flex-wrap: wrap;
+        margin-bottom: 1rem;
+      }
+      .err {
+        color: #b42318;
+        font-size: 0.875rem;
+        margin: 0 0 0.75rem;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.875rem;
+        background: #fff;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        overflow: hidden;
+      }
+      th,
+      td {
+        text-align: left;
+        padding: 0.75rem 1rem;
+        border-bottom: 1px solid var(--border);
+        vertical-align: top;
+      }
+      th {
+        background: #f0f5fc;
+        font-weight: 600;
+        color: var(--navy);
+      }
+      tr:last-child td {
+        border-bottom: none;
+      }
+      .cell-msg {
+        max-width: 280px;
+        white-space: pre-wrap;
+        word-break: break-word;
+      }
+      .hidden {
+        display: none !important;
+      }
+      .muted {
+        color: var(--muted);
+        font-size: 0.8rem;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <h1>Demo requests</h1>
+      <p class="sub">Wobcom admin — view all Request a Demo submissions.</p>
+
+      <div id="login-panel" class="panel">
+        <h2>Sign in</h2>
+        <p id="login-err" class="err hidden"></p>
+        <form id="login-form">
+          <label for="password">Admin password</label>
+          <input id="password" name="password" type="password" autocomplete="current-password" required />
+          <button type="submit">Sign in</button>
+        </form>
+      </div>
+
+      <div id="data-section" class="hidden">
+        <div class="toolbar">
+          <p class="muted" id="count-label"></p>
+          <button type="button" class="secondary" id="logout-btn">Log out</button>
+        </div>
+        <div style="overflow-x: auto">
+          <table>
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Submitted (UTC)</th>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Phone</th>
+                <th>Business</th>
+                <th>Message</th>
+                <th>IP</th>
+              </tr>
+            </thead>
+            <tbody id="tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      (function () {
+        var loginPanel = document.getElementById("login-panel");
+        var dataSection = document.getElementById("data-section");
+        var loginForm = document.getElementById("login-form");
+        var loginErr = document.getElementById("login-err");
+        var tbody = document.getElementById("tbody");
+        var countLabel = document.getElementById("count-label");
+        var logoutBtn = document.getElementById("logout-btn");
+
+        function esc(s) {
+          var d = document.createElement("div");
+          d.textContent = s == null ? "" : String(s);
+          return d.innerHTML;
+        }
+
+        function loadSubmissions() {
+          fetch("/api/admin/submissions", { credentials: "same-origin" })
+            .then(function (r) {
+              if (r.status === 401) {
+                loginPanel.classList.remove("hidden");
+                dataSection.classList.add("hidden");
+                return null;
+              }
+              return r.json();
+            })
+            .then(function (data) {
+              if (!data || !data.ok) return;
+              tbody.innerHTML = "";
+              var rows = data.submissions || [];
+              countLabel.textContent = rows.length + " submission" + (rows.length === 1 ? "" : "s");
+              rows.forEach(function (row) {
+                var tr = document.createElement("tr");
+                tr.innerHTML =
+                  "<td>" +
+                  esc(row.id) +
+                  "</td>" +
+                  "<td>" +
+                  esc(row.created_at) +
+                  "</td>" +
+                  "<td>" +
+                  esc(row.name) +
+                  "</td>" +
+                  "<td>" +
+                  esc(row.email) +
+                  "</td>" +
+                  "<td>" +
+                  esc(row.phone) +
+                  "</td>" +
+                  "<td>" +
+                  esc(row.business_name || "—") +
+                  "</td>" +
+                  '<td class="cell-msg">' +
+                  esc(row.message) +
+                  "</td>" +
+                  "<td>" +
+                  esc(row.ip_address || "—") +
+                  "</td>";
+                tbody.appendChild(tr);
+              });
+              loginPanel.classList.add("hidden");
+              dataSection.classList.remove("hidden");
+            })
+            .catch(function () {
+              loginErr.textContent = "Could not load data.";
+              loginErr.classList.remove("hidden");
+            });
+        }
+
+        fetch("/api/admin/session", { credentials: "same-origin" })
+          .then(function (r) {
+            return r.json();
+          })
+          .then(function (data) {
+            if (data && data.authenticated) {
+              loadSubmissions();
+            }
+          });
+
+        loginForm.addEventListener("submit", function (e) {
+          e.preventDefault();
+          loginErr.classList.add("hidden");
+          var fd = new FormData(loginForm);
+          fetch("/api/admin/login", {
+            method: "POST",
+            credentials: "same-origin",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ password: fd.get("password") }),
+          })
+            .then(function (r) {
+              return r.json().then(function (j) {
+                return { ok: r.ok, body: j };
+              });
+            })
+            .then(function (result) {
+              if (result.ok && result.body.ok) {
+                loginForm.reset();
+                loadSubmissions();
+              } else {
+                loginErr.textContent = (result.body && result.body.error) || "Login failed.";
+                loginErr.classList.remove("hidden");
+              }
+            });
+        });
+
+        logoutBtn.addEventListener("click", function () {
+          fetch("/api/admin/logout", { method: "POST", credentials: "same-origin" }).then(function () {
+            loginPanel.classList.remove("hidden");
+            dataSection.classList.add("hidden");
+            tbody.innerHTML = "";
+          });
+        });
+      })();
+    </script>
+  </body>
+</html>
